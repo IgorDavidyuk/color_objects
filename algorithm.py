@@ -1,10 +1,23 @@
 import colorsys
-from typing import Tuple
+from pathlib import Path
+from typing import Tuple, Union
 import cv2
 import numpy as np
 
 def print_figure_name(img: np.ndarray, n_vertices: int,
                       position: Tuple[int, int]) -> None:
+    """
+    Puts the figure name on an image.
+
+    parameters:
+        img - image with figures to print text on
+        n_vertices - number of vertices in the shape
+        position - position of left bottom point of the text line
+
+    opput:
+        the image with printed text
+    """
+
     fontScale = img.shape[0] / 700
     thickness = max(int(img.shape[0]/300), 1)
     
@@ -16,7 +29,7 @@ def print_figure_name(img: np.ndarray, n_vertices: int,
         cv2.putText(img, 'SQUARE', position, cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale, (255,255,255), thickness)
 
-    elif n_vertices > 10:
+    elif n_vertices >= 10:
         cv2.putText(img, 'CIRCLE', position, cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale, (255,255,255), thickness)
 
@@ -26,40 +39,70 @@ def print_figure_name(img: np.ndarray, n_vertices: int,
 
 
 def gen_colors(n: int) -> np.ndarray:
+    """Generates n unique equidistant colors using HSV color system."""
     hues = np.linspace(0, 1, n, endpoint=False)
     colors = [colorsys.hsv_to_rgb(h, 1, 0.6) for h in hues]
     return (np.array(colors) * 255).astype(int)
 
 
 def get_color_for_figure(n_vertices: int) -> Tuple[int, int, int]:
+    """Returns an RBG color tuple depending on the number of vertices."""
     if n_vertices == 3:
         return (200, 0, 0)
 
     elif n_vertices == 4:
         return (0, 200, 0)
 
-    elif n_vertices > 10:
+    elif n_vertices >= 10:
         return (0, 0, 200)
 
     return (70, 70, 70)
 
 
-def color_image(img):
+def color_image(img: np.ndarray, unique_colors=True, threshold=100,
+                approximation_accuracy=100) -> np.ndarray:
+    """
+    This function detects simple shapes in the image and colors them.
+
+    Detected figures will be also subscribed on the final image. The function
+    can detect triangles, quadrilateral and circles; any other figure will be
+    marked "UNEXPECTED".
+
+    The algorithm uses OpenCV to find countours on a graysacale version of
+    the image. Then it uses polygon approximation algorithm to reduce the
+    number of vertices in contours. The resulted polygons are used to identify
+    and color figures in image.
+
+    parameters:
+        img - image with figures to color
+        unique_colors - flag to color all figures in unique colores
+            independent of number of vertices. The default behavior is
+            coloring all the figures of the same type in one color
+        threshold - background threshold for grayscale image, usthin that
+            the algo will separate figures from background
+        approximation_accuracy - accuracy of poligon approximation for
+            a detected contour
+
+    opput:
+        the image with colored and subscribed figures
+    """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # apply threshold
     thresholded_im = np.zeros(img.shape[:2], dtype=np.uint8)
-    thresholded_im[gray>100] = 255
+    thresholded_im[gray>threshold] = 255
 
     contours, _ = cv2.findContours(thresholded_im, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    colors = gen_colors(len(contours))
+    if unique_colors:
+        colors = gen_colors(len(contours))
 
     for i, contour in enumerate(contours):
         # find positions of vertices to count them
         # we need some value to estimate approximation accuracy - let it be perimeter
         object_perimeter = cv2.arcLength(contour, closed=True)
-        approx = cv2.approxPolyDP(contour, epsilon=object_perimeter/150, closed=True)
+        approx = cv2.approxPolyDP(contour, epsilon=object_perimeter/approximation_accuracy,
+                                  closed=True)
         n_vertices = len(approx)
         
         # find object centers
@@ -72,17 +115,32 @@ def color_image(img):
         # highlight contours
         cv2.drawContours(img, [contour], 0, (255, 255, 255), 4)
         # fill the object
-        color = colors[i].tolist()
-        color = get_color_for_figure(n_vertices)
+        if unique_colors:
+            color = colors[i].tolist()
+        else:
+            color = get_color_for_figure(n_vertices)
         cv2.fillPoly(img, pts=[contour], color=color)
         
         # subscribe the figure
         print_figure_name(img, n_vertices, (x,y))
+
     return img
 
-if __name__ == '__main__':
-    img = cv2.imread('~/test_figures.jpg')  
-    colored = color_image(img)
-    cv2.imshow('Colored Figures', colored)
+
+def read_image(path: Union[Path, str]) -> np.ndarray:
+    """This function reads image from disk."""
+    path = str(path)
+    return cv2.imread(path)
+
+
+def show_image(img: np.ndarray) -> None:
+    """Function uses OpenCV to show the image in a window.s"""
+    cv2.imshow('Colored Figures', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    img =  read_image('./test_figures.jpg')
+    colored = color_image(img)
+    show_image(colored)
