@@ -14,7 +14,7 @@ def print_figure_name(img: np.ndarray, n_vertices: int,
         n_vertices - number of vertices in the shape
         position - position of left bottom point of the text line
 
-    opput:
+    output:
         the image with printed text
     """
 
@@ -60,30 +60,30 @@ def get_color_for_figure(n_vertices: int) -> Tuple[int, int, int]:
 
 
 def color_image(img: np.ndarray, unique_colors=True, threshold=100,
-                approximation_accuracy=100) -> np.ndarray:
+                approximation_accuracy=150) -> np.ndarray:
     """
     This function detects simple shapes in the image and colors them.
 
-    Detected figures will be also subscribed on the final image. The function
-    can detect triangles, quadrilateral and circles; any other figure will be
+    Detected figures will be also subscribed in the final image. The function
+    can detect triangles, quadrilateral, and circles; any other figure will be
     marked "UNEXPECTED".
 
-    The algorithm uses OpenCV to find countours on a graysacale version of
-    the image. Then it uses polygon approximation algorithm to reduce the
+    The algorithm uses OpenCV to find contours on a grayscale version of
+    the image. Then it uses a polygon approximation algorithm to reduce the
     number of vertices in contours. The resulted polygons are used to identify
-    and color figures in image.
+    and color figures in the image.
 
     parameters:
         img - image with figures to color
         unique_colors - flag to color all figures in unique colores
-            independent of number of vertices. The default behavior is
+            independent of the number of vertices. The default behavior is
             coloring all the figures of the same type in one color
-        threshold - background threshold for grayscale image, usthin that
-            the algo will separate figures from background
-        approximation_accuracy - accuracy of poligon approximation for
-            a detected contour
+        threshold - background threshold for a grayscale image, using that
+            the algo will separate figures from the background
+        approximation_accuracy - accuracy of polygon approximation for
+            detected contours
 
-    opput:
+    output:
         the image with colored and subscribed figures
     """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -129,12 +129,12 @@ def color_image(img: np.ndarray, unique_colors=True, threshold=100,
 
 def read_image(path: Union[Path, str]) -> np.ndarray:
     """This function reads image from disk."""
-    path = str(path)
-    return cv2.imread(path)
+    path = Path(path).absolute()
+    return cv2.imread(str(path))
 
 
 def show_image(img: np.ndarray) -> None:
-    """Function uses OpenCV to show the image in a window.s"""
+    """Function uses OpenCV to show the image in a window."""
     cv2.imshow('Colored Figures', img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
