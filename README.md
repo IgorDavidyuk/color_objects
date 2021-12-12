@@ -37,14 +37,14 @@ $ pip install -r requirements.txt
 $ python main.py -i path/to/image
 ```
 
-## Additional parameters
+### Additional parameters
 User may pass parameters to the script:
 - `-u` - unique colors flag. Pass to color all figures in unique colores independent of the number of vertices.
 The default behavior is coloring all the figures of the same type in one color.
 - `-t` - background threshold value for a grayscale image, using that the algo will separate figures from the background.
 - `-a` - accuracy of polygon approximation for detected contours.
 
-### TO-DO:
+## TO-DO:
 1. run linter
 3. generator script
 4. tests
