@@ -4,8 +4,10 @@ from typing import Tuple, Union
 import cv2
 import numpy as np
 
-def print_figure_name(img: np.ndarray, n_vertices: int,
-                      position: Tuple[int, int]) -> None:
+
+def print_figure_name(
+    img: np.ndarray, n_vertices: int, position: Tuple[int, int]
+) -> None:
     """
     Puts the figure name on an image.
 
@@ -19,23 +21,51 @@ def print_figure_name(img: np.ndarray, n_vertices: int,
     """
 
     fontScale = img.shape[0] / 700
-    thickness = max(int(img.shape[0]/300), 1)
-    
+    thickness = max(int(img.shape[0] / 300), 1)
+
     if n_vertices == 3:
-        cv2.putText(img, 'TRIANGLE', position, cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale, (255,255,255), thickness)
+        cv2.putText(
+            img,
+            "TRIANGLE",
+            position,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale,
+            (255, 255, 255),
+            thickness,
+        )
 
     elif n_vertices == 4:
-        cv2.putText(img, 'SQUARE', position, cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale, (255,255,255), thickness)
+        cv2.putText(
+            img,
+            "SQUARE",
+            position,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale,
+            (255, 255, 255),
+            thickness,
+        )
 
     elif n_vertices >= 10:
-        cv2.putText(img, 'CIRCLE', position, cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale, (255,255,255), thickness)
+        cv2.putText(
+            img,
+            "CIRCLE",
+            position,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale,
+            (255, 255, 255),
+            thickness,
+        )
 
     else:
-        cv2.putText(img, 'UNEXPECTED FIGURE', position, cv2.FONT_HERSHEY_SIMPLEX,
-                    fontScale, (255,255,255), thickness)
+        cv2.putText(
+            img,
+            "UNEXPECTED FIGURE",
+            position,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale,
+            (255, 255, 255),
+            thickness,
+        )
 
 
 def gen_colors(n: int) -> np.ndarray:
@@ -59,8 +89,9 @@ def get_color_for_figure(n_vertices: int) -> Tuple[int, int, int]:
     return (70, 70, 70)
 
 
-def color_image(img: np.ndarray, unique_colors=True, threshold=100,
-                approximation_accuracy=150) -> np.ndarray:
+def color_image(
+    img: np.ndarray, unique_colors=True, threshold=100, approximation_accuracy=150
+) -> np.ndarray:
     """
     This function detects simple shapes in the image and colors them.
 
@@ -90,9 +121,11 @@ def color_image(img: np.ndarray, unique_colors=True, threshold=100,
 
     # apply threshold
     thresholded_im = np.zeros(img.shape[:2], dtype=np.uint8)
-    thresholded_im[gray>threshold] = 255
+    thresholded_im[gray > threshold] = 255
 
-    contours, _ = cv2.findContours(thresholded_im, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(
+        thresholded_im, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
+    )
 
     if unique_colors:
         colors = gen_colors(len(contours))
@@ -101,16 +134,17 @@ def color_image(img: np.ndarray, unique_colors=True, threshold=100,
         # find positions of vertices to count them
         # we need some value to estimate approximation accuracy - let it be perimeter
         object_perimeter = cv2.arcLength(contour, closed=True)
-        approx = cv2.approxPolyDP(contour, epsilon=object_perimeter/approximation_accuracy,
-                                  closed=True)
+        approx = cv2.approxPolyDP(
+            contour, epsilon=object_perimeter / approximation_accuracy, closed=True
+        )
         n_vertices = len(approx)
-        
+
         # find object centers
         # M = cv2.moments(contour)
         x, y = approx.squeeze().mean(axis=0).astype(int)
         # offset to the left for x
-        x = (x + 2*approx[:,0,0].min()) // 3
-        
+        x = (x + 2 * approx[:, 0, 0].min()) // 3
+
         # COLORING PART
         # highlight contours
         cv2.drawContours(img, [contour], 0, (255, 255, 255), 4)
@@ -120,9 +154,9 @@ def color_image(img: np.ndarray, unique_colors=True, threshold=100,
         else:
             color = get_color_for_figure(n_vertices)
         cv2.fillPoly(img, pts=[contour], color=color)
-        
+
         # subscribe the figure
-        print_figure_name(img, n_vertices, (x,y))
+        print_figure_name(img, n_vertices, (x, y))
 
     return img
 
@@ -135,12 +169,12 @@ def read_image(path: Union[Path, str]) -> np.ndarray:
 
 def show_image(img: np.ndarray) -> None:
     """Function uses OpenCV to show the image in a window."""
-    cv2.imshow('Colored Figures', img)
+    cv2.imshow("Colored Figures", img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 
-if __name__ == '__main__':
-    img =  read_image('./test_figures.jpg')
+if __name__ == "__main__":
+    img = read_image("./test_figures.jpg")
     colored = color_image(img)
     show_image(colored)
