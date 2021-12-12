@@ -43,9 +43,10 @@ User may pass parameters to the script:
 The default behavior is coloring all the figures of the same type in one color.
 - `-t` - background threshold value for a grayscale image, using that the algo will separate figures from the background.
 - `-a` - accuracy of polygon approximation for detected contours.
+- `-s` - if a path is passed, the resulting image will be saved to disk.
+- `--dont-show` - flag indicating the program should not invoke a new window to show the result.
 
 ## TO-DO:
-1. run linter
 3. generator script
 4. tests
 6. poetry package
