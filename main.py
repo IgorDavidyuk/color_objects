@@ -1,6 +1,6 @@
 import argparse
 from pathlib import Path
-from algorithm import color_image, read_image, show_image
+from algorithm import color_image, read_image, save_image, show_image
 
 
 def main() -> None:
@@ -17,6 +17,18 @@ def main() -> None:
         "--unique-colors",
         help="Use unique equidistant colors for figures",
         action="store_true",
+    )
+    parser.add_argument(
+        "--dont-show",
+        help="Do not invoke a new window to show the result",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-s",
+        "--save-path",
+        type=str,
+        help="Save processed image to disc",
+        default='',
     )
     parser.add_argument(
         "-t",
@@ -67,7 +79,10 @@ def main() -> None:
     modified_image = color_image(
         image, args.unique_colors, threshold=thresh, approximation_accuracy=approx_acc
     )
-    show_image(modified_image)
+    if args.save_path:
+        save_image(args.save_path, modified_image)
+    if not args.dont_show:
+        show_image(modified_image)
 
 
 if __name__ == "__main__":

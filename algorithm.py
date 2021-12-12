@@ -167,6 +167,12 @@ def read_image(path: Union[Path, str]) -> np.ndarray:
     return cv2.imread(str(path))
 
 
+def save_image(path: Union[Path, str], image: np.ndarray) -> None:
+    """This function writes image to disk."""
+    path = Path(path).absolute()
+    return cv2.imwrite(str(path), image)
+
+
 def show_image(img: np.ndarray) -> None:
     """Function uses OpenCV to show the image in a window."""
     cv2.imshow("Colored Figures", img)
